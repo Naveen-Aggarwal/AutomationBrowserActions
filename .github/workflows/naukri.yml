@@ -1,29 +1,38 @@
-name: Naukri Workflow
+name: Naukri Profile Refresh
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at midnight
+    # Runs every hour from 8 AM to 2 PM IST (2:30 AM - 8:30 AM UTC)
+    - cron: "30 2 * * 1-6"   # 8:00 AM IST
+    - cron: "30 3 * * 1-6"   # 9:00 AM IST
+    - cron: "30 4 * * 1-6"   # 10:00 AM IST
+    - cron: "30 5 * * 1-6"   # 11:00 AM IST
+    - cron: "30 6 * * 1-6"   # 12:00 PM IST
+    - cron: "30 7 * * 1-6"   # 1:00 PM IST
+    - cron: "30 8 * * 1-6"   # 2:00 PM IST
+  workflow_dispatch:          # Also allows manual trigger
 
 jobs:
-  build:
+  refresh:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-    
-    - name: Run script
-      run: |
-        python your_script.py
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install selenium webdriver-manager
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Run refresh (single shot)
+        env:
+          NAUKRI_EMAIL:    ${{ secrets.NAUKRI_EMAIL }}
+          NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
+        run: python naukri_single_refresh.py
