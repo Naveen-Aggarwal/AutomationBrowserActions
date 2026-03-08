@@ -2,15 +2,14 @@ name: Naukri Profile Refresh
 
 on:
   schedule:
-    # Runs every hour from 8 AM to 2 PM IST (2:30 AM - 8:30 AM UTC)
-    - cron: "00 2 * * 1-6"   # 8:00 AM IST
-    - cron: "30 3 * * 1-6"   # 9:00 AM IST
-    - cron: "51 4 * * 1-6"   # 10:00 AM IST
-    - cron: "45 6 * * 1-6"   # 11:00 AM IST
-    - cron: "30 8 * * 1-6"   # 12:00 PM IST
-    - cron: "00 10 * * 1-6"   # 1:00 PM IST
-    - cron: "03 12 * * 1-6"   # 2:00 PM IST
-  workflow_dispatch:          # Also allows manual trigger
+    - cron: "30 2 * * 1-6"
+    - cron: "30 3 * * 1-6"
+    - cron: "30 4 * * 1-6"
+    - cron: "30 5 * * 1-6"
+    - cron: "30 6 * * 1-6"
+    - cron: "30 7 * * 1-6"
+    - cron: "30 8 * * 1-6"
+  workflow_dispatch:
 
 jobs:
   refresh:
@@ -24,15 +23,23 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install selenium webdriver-manager
+        run: pip install selenium undetected-chromedriver
 
       - name: Install Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Run refresh (single shot)
+      - name: Run refresh
         env:
           NAUKRI_EMAIL:    ${{ secrets.NAUKRI_EMAIL }}
           NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
         run: python naukri_single_refresh.py
+
+      # Uploads screenshot ONLY if the step above fails
+      - name: Upload debug screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshot
+          path: debug_screenshot.png
