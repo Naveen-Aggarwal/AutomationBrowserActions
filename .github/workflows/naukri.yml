@@ -22,21 +22,27 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Chrome and matching ChromeDriver
+      - name: Install Chrome via apt (stable, matches runner environment)
         run: |
-          # Install Chrome for Testing (version-pinned, avoids mismatch)
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chrome-linux64.zip
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chromedriver-linux64.zip
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
           
-          unzip -q chrome-linux64.zip
+          # Get the exact installed version
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+          echo "Installed Chrome: $CHROME_VERSION"
+          
+          # Download matching ChromeDriver from Chrome for Testing
+          MAJOR=$(echo $CHROME_VERSION | cut -d. -f1)
+          CfT_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_$MAJOR")
+          echo "ChromeDriver version: $CfT_VERSION"
+          
+          wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CfT_VERSION/linux64/chromedriver-linux64.zip"
           unzip -q chromedriver-linux64.zip
-          
-          sudo mv chrome-linux64/chrome /usr/local/bin/chrome
           sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chrome /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
           
-          # Verify versions match
-          chrome --version
+          # Sanity check
+          google-chrome --version
           chromedriver --version
 
       - name: Install Python dependencies

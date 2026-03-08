@@ -12,16 +12,17 @@ PASSWORD = os.environ["NAUKRI_PASSWORD"]
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 options = Options()
-options.binary_location = "/usr/local/bin/chrome"   # pinned Chrome binary
+# DO NOT set binary_location — let it use system google-chrome
 options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")                  # critical for Actions
+options.add_argument("--remote-debugging-port=0")      # fixes DevToolsActivePort error
 options.add_argument("--window-size=1920,1080")
 options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option("useAutomationExtension", False)
 
-# Point directly to pinned chromedriver — no webdriver_manager needed
 service = Service(executable_path="/usr/local/bin/chromedriver")
 driver  = webdriver.Chrome(service=service, options=options)
 driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
