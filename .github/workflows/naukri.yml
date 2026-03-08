@@ -22,13 +22,25 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install selenium undetected-chromedriver
-
-      - name: Install Chrome
+      - name: Install Chrome and matching ChromeDriver
         run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          # Install Chrome for Testing (version-pinned, avoids mismatch)
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chrome-linux64.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chromedriver-linux64.zip
+          
+          unzip -q chrome-linux64.zip
+          unzip -q chromedriver-linux64.zip
+          
+          sudo mv chrome-linux64/chrome /usr/local/bin/chrome
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chrome /usr/local/bin/chromedriver
+          
+          # Verify versions match
+          chrome --version
+          chromedriver --version
+
+      - name: Install Python dependencies
+        run: pip install selenium
 
       - name: Run refresh
         env:
@@ -36,7 +48,6 @@ jobs:
           NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
         run: python naukri_single_refresh.py
 
-      # Uploads screenshot ONLY if the step above fails
       - name: Upload debug screenshot
         if: failure()
         uses: actions/upload-artifact@v4
